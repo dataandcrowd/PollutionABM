@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="ko"><Esri><CreaDate>20181208</CreaDate><CreaTime>11321100</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process Name="Raster to ASCII" ToolSource="c:\arcgis105\desktop10.5\ArcToolbox\Toolboxes\Conversion Tools.tbx\RasterToASCII" Date="20181208" Time="113211">RasterToASCII H:\Netlogo-for-Seoul\roads\roads_Raster\yeongdeungpo.tif H:\Netlogo-for-Seoul\roads\roads_ASCII\yeongdeungpo.txt</Process></lineage></DataProperties></Esri></metadata>
