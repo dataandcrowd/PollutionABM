@@ -1,8 +1,8 @@
 extensions [gis csv table]
-globals [gu road land districtPop districtadminCode districtEdu %riskpop date where number-dead ts_kalman ts_kal poll_scenario]
+globals [gu road land districtPop districtadminCode districtEdu %riskpop date where number-dead ts_kalman poll_scenario]
 breed [dong-labels dong-label]
 breed[people person]
-patches-own [is-research-area? name dong-code land10 locationName hospital ts__kal]
+patches-own [is-research-area? name dong-code land10 hospital ts__kal]
 people-own  [health age edu districtName district-code
              homeName homePatch destinationName destinationPatch]
 
@@ -43,8 +43,8 @@ to go
   update-plots
   tick
   if (ticks = 8764) [stop]
-  set date item 0 table:get ts_kal (ticks + 1)
-  set where item 2 table:get ts_kal (ticks + 1)
+  set date item 0 table:get ts_kalman (ticks + 1)
+  set where item 2 table:get ts_kalman (ticks + 1)
   set %riskpop    (count people with [color = red and destinationName != "others"] / count people with [destinationName != "others"]) * 100
   set number-dead count people with [health < 0]
 end
@@ -55,7 +55,7 @@ to set-gis-data
   ask patches [set pcolor white]
   gis:load-coordinate-system (word "boundary/boundary_shape/Gangnam.prj")
   set gu   gis:load-dataset "boundary/boundary_shape/Gangnam.shp"
-  set road gis:load-dataset "roads/roads_shape/Gangnam.shp"
+  set road gis:load-dataset "roads/roads_shape/gangnam.shp"
   set land gis:load-dataset "LandPrice/LandPrice_Gu_Shape/Landprice_Gangnam.shp"
   gis:set-world-envelope (gis:envelope-union-of gis:envelope-of gu)
   ask patches gis:intersecting gu [set is-research-area? true]
@@ -106,13 +106,6 @@ to add-census
          if item 1 code = "Gangnam"
         [table:put adCode item 0 code list (item 1 code)(item 2 code) ]
         ]
-  foreach table:keys adCode [ adminCODE ->
-       let loops 0
-       foreach table:get adCode adminCODE [ x ->
-           ask patches [if gu = adminCODE [set locationName x]]
-            ]
-       set loops loops + 1
-       ]
 end
 
 to add-pollution
@@ -132,7 +125,9 @@ to add-pollution
 set rep rep + 1
 
   ask patches with [is-research-area? = true] [
-    set ts__kal  item (3 + random 13) table:get ts_kalman 1
+    let homeID item (3 + random 13) table:get ts_kalman 1
+    ifelse homeID > 0
+    [set ts__kal  homeID][set ts__kal max table:get ts_kalman 1]
   ]
 
 
@@ -393,11 +388,15 @@ to set-destination   ;; Decomposing matrix
               [set number Num - totalUsed ]
 		  ;; if agents move within district, then count agents by rounding the values of population x
       ;; "fraction of region A", population x "fraction of region B"...
-		  ;; if agents move outside district, then count the remainder of the population not used for inbound population
-          ask n-of number (people with [homeName = originName and destinationName = "unidentified"
-                and (age >= 15 and age < 65)]) [
+      ;; if agents move outside district, then count the remainder of the population not used for inbound population
+         let peopleRemaining (people with [homeName = originName and destinationName = "unidentified"
+                and (age >= 15 and age < 65)])
+         if count peopleRemaining > 0 and count peopleRemaining <= number [ set number count peopleRemaining ]
+               if number < 0 [ set number 0]
+
+         ask n-of number peopleRemaining [
                 set destinationName newDestination ;; assign destination name
-                set destinationPatch one-of patches with [locationName = newDestination]
+                set destinationPatch one-of patches with [name = newDestination]
        ]
     set matrix-loop matrix-loop + 1
   ]
@@ -460,16 +459,16 @@ end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to adaptive-cap
-  if (health < AC) and ([land] of patch-here  < 920459)  [set health health + 0.01]
-  if (health < AC) and ([land] of patch-here >= 920459)   and ([land] of patch-here < 1550940) [set health health + 0.01]
-  if (health < AC) and ([land] of patch-here >= 1550940)  and ([land] of patch-here < 2091133) [set health health + 0.02]
-  if (health < AC) and ([land] of patch-here >= 2091133)  and ([land] of patch-here < 2637070) [set health health + 0.04]
-  if (health < AC) and ([land] of patch-here >= 2637070)  and ([land] of patch-here < 3273274) [set health health + 0.05]
-  if (health < AC) and ([land] of patch-here >= 3273274)  and ([land] of patch-here < 4140183) [set health health + 0.05]
-  if (health < AC) and ([land] of patch-here >= 4140183)  and ([land] of patch-here < 5443608) [set health health + 0.06]
-  if (health < AC) and ([land] of patch-here >= 5443608)  and ([land] of patch-here < 8361806) [set health health + 0.07]
-  if (health < AC) and ([land] of patch-here >= 8361806)  and ([land] of patch-here < 11545447) [set health health + 0.12]
-  if (health < AC) and ([land] of patch-here >= 11545447) and ([land] of patch-here < 20261596) [set health health + 0.15]
+  if (health < AC) and ([land10] of patch-here  < 920459)  [set health health + 0.01]
+  if (health < AC) and ([land10] of patch-here >= 920459)   and ([land10] of patch-here < 1550940) [set health health + 0.01]
+  if (health < AC) and ([land10] of patch-here >= 1550940)  and ([land10] of patch-here < 2091133) [set health health + 0.02]
+  if (health < AC) and ([land10] of patch-here >= 2091133)  and ([land10] of patch-here < 2637070) [set health health + 0.04]
+  if (health < AC) and ([land10] of patch-here >= 2637070)  and ([land10] of patch-here < 3273274) [set health health + 0.05]
+  if (health < AC) and ([land10] of patch-here >= 3273274)  and ([land10] of patch-here < 4140183) [set health health + 0.05]
+  if (health < AC) and ([land10] of patch-here >= 4140183)  and ([land10] of patch-here < 5443608) [set health health + 0.06]
+  if (health < AC) and ([land10] of patch-here >= 5443608)  and ([land10] of patch-here < 8361806) [set health health + 0.07]
+  if (health < AC) and ([land10] of patch-here >= 8361806)  and ([land10] of patch-here < 11545447) [set health health + 0.12]
+  if (health < AC) and ([land10] of patch-here >= 11545447) and ([land10] of patch-here < 20261596) [set health health + 0.15]
 
 end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -497,16 +496,10 @@ to road-effect
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 to calc-pm10
   if (Scenario = "BAU")
   [ask patches with [is-research-area? = true]
-    [
-     if ticks > 0 [
-     if (ticks + 1) mod 2 = 0 [set ts__kal item (3 + random 13) table:get ts_kal ticks + 1]
-     if ticks mod 2 = 0       [set ts__kal item (3 + random 11) table:get ts_kal ticks + 1]
-    ]
+   [if ticks > 0 [set-BAU]
   ]]
 
     if (Scenario = "INC")
@@ -527,13 +520,23 @@ to calc-pm10
 end
 
 to set-BAU
-   if (ticks + 1) mod 2 = 0 [set ts__kal  item (3 + random 13) table:get ts_kal  ticks + 1]
-   if ticks mod 2 = 0       [set ts__kal  item (3 + random 11) table:get ts_kal  ticks + 1]
+  let homeID item (3 + random 13) table:get ts_kalman ticks + 1
+  let workID item (3 + random 11) table:get ts_kalman ticks + 1
+
+   if (ticks + 1) mod 2 = 0 [
+    ifelse homeID > 0
+    [set ts__kal  homeID][set ts__kal max table:get ts_kalman ticks + 1]
+  ]
+   if ticks mod 2 = 0 [
+    ifelse workID > 0
+    [set ts__kal  workID][set ts__kal max table:get ts_kalman ticks + 1]
+  ]
+
 end
 
 to set-INC&DEC
-  let homeID item (3 + random 13) table:get ts_kal ticks + 1
-  let workID item (3 + random 11) table:get ts_kal ticks + 1
+  let homeID item (3 + random 13) table:get ts_kalman ticks + 1
+  let workID item (3 + random 11) table:get ts_kalman ticks + 1
 
   let %3inc 5
   if scenario-percent = "inc-sce" [set %3inc %3inc]
@@ -594,7 +597,7 @@ end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to landprice-change
-  ask patches with [land >= 0][set land (random-float .1 + land)]
+  ask patches with [land10 >= 0][set land10 (random-float .1 + land10)]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -610,35 +613,33 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to dong-plot
   set-current-plot "Subdistrict level"
-  set-current-plot-pen "sinsa_risk"     plot((count people with [color = red and districtName = "sinsa" and destinationName != "others"])   / (count people with [districtName = "sinsa" and destinationName != "others"])    * 100)
-	set-current-plot-pen "nonhyun1_risk"  plot((count people with [color = red and districtName = "nonhyun1" and destinationName != "others"])/ (count people with [districtName = "nonhyun1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "nonhyun2_risk"  plot((count people with [color = red and districtName = "nonhyun2" and destinationName != "others"])/ (count people with [districtName = "nonhyun2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "samsung1_risk"  plot((count people with [color = red and districtName = "samsung1" and destinationName != "others"])/ (count people with [districtName = "samsung1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "samsung2_risk"  plot((count people with [color = red and districtName = "samsung2" and destinationName != "others"])/ (count people with [districtName = "samsung2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "daechi1_risk"   plot((count people with [color = red and districtName = "daechi1" and destinationName != "others"]) / (count people with [districtName = "daechi1" and destinationName != "others"])  * 100)
-	set-current-plot-pen "daechi4_risk"   plot((count people with [color = red and districtName = "daechi4" and destinationName != "others"]) / (count people with [districtName = "daechi4" and destinationName != "others"])  * 100)
-	set-current-plot-pen "yeoksam1_risk"  plot((count people with [color = red and districtName = "yeoksam1" and destinationName != "others"])/ (count people with [districtName = "yeoksam1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "yeoksam2_risk"  plot((count people with [color = red and districtName = "yeoksam2" and destinationName != "others"])/ (count people with [districtName = "yeoksam2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "dogok1_risk"    plot((count people with [color = red and districtName = "dogok1" and destinationName != "others"])  / (count people with [districtName = "dogok1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "dogok2_risk"    plot((count people with [color = red and districtName = "dogok2" and destinationName != "others"])  / (count people with [districtName = "dogok2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "gaepo1_risk"    plot((count people with [color = red and districtName = "gaepo1" and destinationName != "others"])  / (count people with [districtName = "gaepo1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "gaepo4_risk"    plot((count people with [color = red and districtName = "gaepo4" and destinationName != "others"])  / (count people with [districtName = "gaepo4" and destinationName != "others"])   * 100)
-	set-current-plot-pen "ilwon_risk"     plot((count people with [color = red and districtName = "ilwon" and destinationName != "others"])   / (count people with [districtName = "ilwon" and destinationName != "others"])    * 100)
-	set-current-plot-pen "ilwon1_risk"    plot((count people with [color = red and districtName = "ilwon1" and destinationName != "others"])  / (count people with [districtName = "ilwon1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "ilwon2_risk"    plot((count people with [color = red and districtName = "ilwon2" and destinationName != "others"])  / (count people with [districtName = "ilwon2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "suseo_risk"     plot((count people with [color = red and districtName = "suseo" and destinationName != "others"])   / (count people with [districtName = "suseo" and destinationName != "others"])    * 100)
-	set-current-plot-pen "ap_risk"        plot((count people with [color = red and districtName = "ap" and destinationName != "others"])      / (count people with [districtName = "ap" and destinationName != "others"])       * 100)
-	set-current-plot-pen "chungdam_risk"  plot((count people with [color = red and districtName = "chungdam" and destinationName != "others"])/ (count people with [districtName = "chungdam" and destinationName != "others"]) * 100)
-	set-current-plot-pen "daechi2_risk"   plot((count people with [color = red and districtName = "daechi2" and destinationName != "others"]) / (count people with [districtName = "daechi2" and destinationName != "others"])  * 100)
-	set-current-plot-pen "gaepo2_risk"    plot((count people with [color = red and districtName = "gaepo2" and destinationName != "others"])  / (count people with [districtName = "gaepo2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "segok_risk"     plot((count people with [color = red and districtName = "segok" and destinationName != "others"])   / (count people with [districtName = "segok" and destinationName != "others"])    * 100)
+  set-current-plot-pen "shinsa_risk"    plot((count people with [color = red and districtName = "Shinsa" and destinationName != "others"])   / (count people with [districtName = "Shinsa" and destinationName != "others"])    * 100)
+	set-current-plot-pen "nonhyun1_risk"  plot((count people with [color = red and districtName = "Nonhyeon1" and destinationName != "others"])/ (count people with [districtName = "Nonhyeon1" and destinationName != "others"]) * 100)
+	set-current-plot-pen "nonhyun2_risk"  plot((count people with [color = red and districtName = "Nonhyeon2" and destinationName != "others"])/ (count people with [districtName = "Nonhyeon2" and destinationName != "others"]) * 100)
+	set-current-plot-pen "samsung1_risk"  plot((count people with [color = red and districtName = "Samseong1" and destinationName != "others"])/ (count people with [districtName = "Samseong1" and destinationName != "others"]) * 100)
+	set-current-plot-pen "samsung2_risk"  plot((count people with [color = red and districtName = "Samseong2" and destinationName != "others"])/ (count people with [districtName = "Samseong2" and destinationName != "others"]) * 100)
+	set-current-plot-pen "daechi1_risk"   plot((count people with [color = red and districtName = "Daechi1" and destinationName != "others"]) / (count people with [districtName = "Daechi1" and destinationName != "others"])  * 100)
+	set-current-plot-pen "daechi4_risk"   plot((count people with [color = red and districtName = "Daechi4" and destinationName != "others"]) / (count people with [districtName = "Daechi4" and destinationName != "others"])  * 100)
+	set-current-plot-pen "yeoksam1_risk"  plot((count people with [color = red and districtName = "Yeoksam1" and destinationName != "others"])/ (count people with [districtName = "Yeoksam1" and destinationName != "others"]) * 100)
+	set-current-plot-pen "yeoksam2_risk"  plot((count people with [color = red and districtName = "Yeoksam2" and destinationName != "others"])/ (count people with [districtName = "Yeoksam2" and destinationName != "others"]) * 100)
+	set-current-plot-pen "dogok1_risk"    plot((count people with [color = red and districtName = "Dogok1" and destinationName != "others"])  / (count people with [districtName = "Dogok1" and destinationName != "others"])   * 100)
+	set-current-plot-pen "dogok2_risk"    plot((count people with [color = red and districtName = "Dogok2" and destinationName != "others"])  / (count people with [districtName = "Dogok2" and destinationName != "others"])   * 100)
+	set-current-plot-pen "gaepo1_risk"    plot((count people with [color = red and districtName = "Gaepo1" and destinationName != "others"])  / (count people with [districtName = "Gaepo1" and destinationName != "others"])   * 100)
+	set-current-plot-pen "gaepo4_risk"    plot((count people with [color = red and districtName = "Gaepo4" and destinationName != "others"])  / (count people with [districtName = "Gaepo4" and destinationName != "others"])   * 100)
+	set-current-plot-pen "ilwon_risk"     plot((count people with [color = red and districtName = "Ilwonbon" and destinationName != "others"])   / (count people with [districtName = "Ilwonbon" and destinationName != "others"])    * 100)
+	set-current-plot-pen "ilwon1_risk"    plot((count people with [color = red and districtName = "Ilwon1" and destinationName != "others"])  / (count people with [districtName = "Ilwon1" and destinationName != "others"])   * 100)
+	set-current-plot-pen "ilwon2_risk"    plot((count people with [color = red and districtName = "Ilwon2" and destinationName != "others"])  / (count people with [districtName = "Ilwon2" and destinationName != "others"])   * 100)
+	set-current-plot-pen "suseo_risk"     plot((count people with [color = red and districtName = "Suseo" and destinationName != "others"])   / (count people with [districtName = "Suseo" and destinationName != "others"])    * 100)
+	set-current-plot-pen "ap_risk"        plot((count people with [color = red and districtName = "Apgujeong1" and destinationName != "others"])      / (count people with [districtName = "Apgujeong1" and destinationName != "others"])       * 100)
+	set-current-plot-pen "chungdam_risk"  plot((count people with [color = red and districtName = "Cheongdam" and destinationName != "others"])/ (count people with [districtName = "Cheongdam" and destinationName != "others"]) * 100)
+	set-current-plot-pen "daechi2_risk"   plot((count people with [color = red and districtName = "Daechi2" and destinationName != "others"]) / (count people with [districtName = "Daechi2" and destinationName != "others"])  * 100)
+	set-current-plot-pen "gaepo2_risk"    plot((count people with [color = red and districtName = "Gaepo2" and destinationName != "others"])  / (count people with [districtName = "Gaepo2" and destinationName != "others"])   * 100)
+	set-current-plot-pen "segok_risk"     plot((count people with [color = red and districtName = "Segok" and destinationName != "others"])   / (count people with [districtName = "Segok" and destinationName != "others"])    * 100)
 end
 
 to age-plot
   set-current-plot "By Age Group"
-  set-current-plot-pen "Young"  ;ifelse(count people with [(age < 15)] != 0)[
-    plot(count people with [age < 15 and color = red and destinationName != "others"]) /
-        (count people with [age < 15 and destinationName != "others"]) * 100
+  set-current-plot-pen "Young"  plot(count people with [age < 15 and color = red and destinationName != "others"]) / (count people with [age < 15 and destinationName != "others"]) * 100
   set-current-plot-pen "Middle" plot((count people with [age >= 15 and age < 65 and color = red and destinationName != "others"]) / (count people with [age >= 15 and age < 65 and destinationName != "others"]) * 100)
   set-current-plot-pen "Old"    plot((count people with [age >= 65 and color = red and destinationName != "others"]) / (count people with [age >= 65 and destinationName != "others"]) * 100)
 
@@ -653,10 +654,7 @@ end
 
 to pm10-plot
   set-current-plot "PM10 patches"
-  set-current-plot-pen "pm10-sinsa-road-kal"  plot [ts__kal] of patch 24 253
-  ;set-current-plot-pen "pm10-yeoksam1"   plot [ts__kal] of patch 60 160
-  ;set-current-plot-pen "pm10-daechi1"    plot [ts__kal] of patch 140 140
-  ;set-current-plot-pen "pm10-segok"      plot [ts__kal] of patch 260 60
+  set-current-plot-pen "pm10-shinsa-road"  plot [ts__kal] of patch 24 253
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -746,7 +744,7 @@ true
 false
 "" ""
 PENS
-"sinsa_risk" 1.0 0 -7500403 true "" ""
+"shinsa_risk" 1.0 0 -7500403 true "" ""
 "nonhyun1_risk" 1.0 0 -2674135 true "" ""
 "nonhyun2_risk" 1.0 0 -955883 true "" ""
 "samsung1_risk" 1.0 0 -6459832 true "" ""
@@ -906,7 +904,7 @@ true
 false
 "" ""
 PENS
-"pm10-sinsa-road" 1.0 0 -7500403 true "" ""
+"pm10-shinsa-road" 1.0 0 -7500403 true "" ""
 "pm10-yeoksam1" 1.0 0 -2674135 true "" ""
 "pm10-daechi1" 1.0 0 -13791810 true "" ""
 "pm10-segok" 1.0 0 -6459832 true "" ""
@@ -1330,7 +1328,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
