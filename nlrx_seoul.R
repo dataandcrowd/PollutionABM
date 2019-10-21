@@ -18,7 +18,7 @@ outpath <- file.path("/home/hs621/github/PollutionABM")
 ## Step1: Create a nl obejct:
 nl <- nl(nlversion = "6.0.4",
          nlpath = netlogopath,
-         modelpath = file.path("/home/hs621/github/PollutionABM/St111261_Gangnam.nlogo"),
+         modelpath = file.path("/home/hs621/github/PollutionABM/St111121_Jung.nlogo"),
          jvmmem = 2048)
 
 ## Step2: Add Experiment
