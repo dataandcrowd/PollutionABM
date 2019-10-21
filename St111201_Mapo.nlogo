@@ -32,14 +32,13 @@ to go
   ask people [
     adaptive-cap
     sensitivity
-    ;road-effect
     ]
 
-  ;gu-plot
-  ;dong-plot
-  ;age-plot
-  ;edu-plot
-  ;pm10-plot
+  gu-plot
+  dong-plot
+  age-plot
+  edu-plot
+  pm10-plot
   update-plots
   tick
   if (ticks = 8764) [stop]
@@ -53,16 +52,16 @@ end
 ;;--------------------------------
 to set-gis-data
   ask patches [set pcolor white]
-  gis:load-coordinate-system (word "boundary/boundary_shape/Seodaemoon.prj")
-  set gu   gis:load-dataset "boundary/boundary_shape/Seodaemoon.shp"
-  set road gis:load-dataset "roads/roads_shape/Seodaemoon.shp"
-  set land gis:load-dataset "LandPrice/LandPrice_Gu_Shape/Landprice_Seodaemoon.shp"
+  gis:load-coordinate-system (word "boundary/boundary_shape/Mapo.prj")
+  set gu   gis:load-dataset "boundary/boundary_shape/Mapo.shp"
+  set road gis:load-dataset "roads/roads_shape/Mapo.shp"
+  set land gis:load-dataset "LandPrice/LandPrice_Gu_Shape/Landprice_Mapo.shp"
   gis:set-world-envelope (gis:envelope-union-of gis:envelope-of gu)
   ask patches gis:intersecting gu [set is-research-area? true]
 ;;--------------------------------
   ;; Draw district
 foreach gis:feature-list-of gu [ gu-feature ->
-    gis:set-drawing-color scale-color green (gis:property-value gu-feature "ADM_CD") 1113052 1113076
+    gis:set-drawing-color scale-color green (gis:property-value gu-feature "ADM_CD") 1114059 1114078
     gis:fill gu-feature 0
   ]
   gis:set-drawing-color [  64  64  64]    gis:draw gu 1
@@ -103,14 +102,14 @@ to add-census
   let rawCode csv:from-file "Census/census2010_age_5per.csv"
   let adCode table:make
   foreach rawCode [ code ->
-         if item 1 code = "Seodaemoon"
+         if item 1 code = "Mapo"
         [table:put adCode item 0 code list (item 1 code)(item 2 code) ]
         ]
 end
 
 to add-pollution
 ; Import daily pollution
-  let p0 csv:from-file "Pollution/St111191_Seodaemoon.csv"
+  let p0 csv:from-file "Pollution/St111201_Mapo.csv"
   let p1 remove-item 0 p0
   let rep 0
   set ts_kalman  table:make
@@ -133,7 +132,7 @@ set rep rep + 1
 
 
 ;;Scenarios
-  let quarter csv:from-file "Scenarios/St111191_Seodaemoon.csv"
+  let quarter csv:from-file "Scenarios/St111201_Mapo.csv"
   let q1 remove-item 0 quarter
   let looop 0
   set poll_scenario table:make
@@ -155,7 +154,7 @@ to set-dictionaries
   set districtadminCode table:make
 
  foreach csv-age [ code ->
-  if item 1 code = "Seodaemoon"
+  if item 1 code = "Mapo"
     [let age59 list (item 3 code) (item 4 code)
      let age1014 lput item 5 code age59
      let age1519 lput item 6 code age1014
@@ -183,7 +182,7 @@ to set-dictionaries
   set districtEdu table:make
 
   foreach csv-edu [ code ->
-    if item 0 code = "Seodaemoon"
+    if item 0 code = "Mapo"
     [let primary list (item 2 code)(item 3 code)
      let middle  lput item 4 code primary
      let high    lput item 5 code middle
@@ -224,149 +223,148 @@ end
 
 to setupAgeGroup [ID]
 if ID = 0  [set size 1 set age  5 + random 5 set color orange
-            ifelse random-float 1 <= .19 [set edu 0][set edu 1]]
+            ifelse random-float 1 <= .20 [set edu 0][set edu 1]]
 if ID = 1  [set size 1 set age 10 + random 5 set color orange + 1
-            ifelse random-float 1 <= .52 [set edu 1][set edu 2]]
+            ifelse random-float 1 <= .53 [set edu 1][set edu 2]]
 if ID = 2  [set size 1 set age 15 + random 5 set color orange + 2
             let r random-float 1
-            if (0    < r and r <= 0.13)[set edu 2]
-            if (0.13 < r and r <= 0.74)[set edu 3]
-            if (0.74 < r and r <= 0.82)[set edu 4]
-            if (0.82 < r )[set edu 5]]
+            if (0    < r and r <= 0.14)[set edu 2]
+            if (0.14 < r and r <= 0.77)[set edu 3]
+            if (0.81 < r and r <= 0.85)[set edu 4]
+            if (0.90 < r )[set edu 5]]
 if ID = 3  [set size 1 set age 20 + random 5 set color turquoise
             let r random-float 1
-            if (0    < r and r <= 0.11)[set edu 3]
-            if (0.11 < r and r <= 0.35)[set edu 4]
-            if (0.35 < r and r <= 0.97)[set edu 5]
-            if (0.97 < r )[set edu 6]]
+            if (0    < r and r <= 0.12)[set edu 3]
+            if (0.12 < r and r <= 0.37)[set edu 4]
+            if (0.37 < r and r <= 0.98)[set edu 5]
+            if (0.98 < r )[set edu 6]]
 if ID = 4  [set size 1 set age 25 + random 5 set color turquoise
             let r random-float 1
             if (0    < r and r <= 0.01)[set edu 2]
-            if (0.01 < r and r <= 0.15)[set edu 3]
-            if (0.15 < r and r <= 0.37)[set edu 4]
-            if (0.37 < r and r <= 0.89)[set edu 5]
-            if (0.89 < r and r <= 0.99)[set edu 6]
+            if (0.01 < r and r <= 0.14)[set edu 3]
+            if (0.14 < r and r <= 0.35)[set edu 4]
+            if (0.35 < r and r <= 0.91)[set edu 5]
+            if (0.91 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 5  [set size 1 set age 30 + random 5 set color turquoise
             let r random-float 1
             if (0    < r and r <= 0.01)[set edu 2]
-            if (0.01 < r and r <= 0.22)[set edu 3]
-            if (0.22 < r and r <= 0.43)[set edu 4]
-            if (0.43 < r and r <= 0.88)[set edu 5]
-            if (0.88 < r and r <= 0.98)[set edu 6]
+            if (0.01 < r and r <= 0.17)[set edu 3]
+            if (0.17 < r and r <= 0.37)[set edu 4]
+            if (0.37 < r and r <= 0.87)[set edu 5]
+            if (0.87 < r and r <= 0.98)[set edu 6]
             if (0.98 < r )[set edu 7]]
 if ID = 6  [set size 1 set age 35 + random 5 set color turquoise
             let r random-float 1
-            if (0    < r and r <= 0.02)[set edu 2]
-            if (0.02 < r and r <= 0.34)[set edu 3]
-            if (0.34 < r and r <= 0.53)[set edu 4]
-            if (0.53 < r and r <= 0.89)[set edu 5]
-            if (0.89 < r and r <= 0.98)[set edu 6]
-            if (0.98 < r )[set edu 7]]
+            if (0    < r and r <= 0.01)[set edu 2]
+            if (0.01 < r and r <= 0.28)[set edu 3]
+            if (0.28 < r and r <= 0.45)[set edu 4]
+            if (0.45 < r and r <= 0.87)[set edu 5]
+            if (0.87 < r and r <= 0.97)[set edu 6]
+            if (0.97 < r )[set edu 7]]
 if ID = 7  [set size 1 set age 40 + random 5 set color brown
             let r random-float 1
             if (0    < r and r <= 0.01)[set edu 1]
             if (0.01 < r and r <= 0.04)[set edu 2]
-            if (0.04 < r and r <= 0.44)[set edu 3]
-            if (0.44 < r and r <= 0.58)[set edu 4]
-            if (0.58 < r and r <= 0.91)[set edu 5]
-            if (0.91 < r and r <= 0.98)[set edu 6]
+            if (0.04 < r and r <= 0.38)[set edu 3]
+            if (0.38 < r and r <= 0.53)[set edu 4]
+            if (0.53 < r and r <= 0.90)[set edu 5]
+            if (0.90 < r and r <= 0.98)[set edu 6]
             if (0.98 < r )[set edu 7]]
 if ID = 8  [set size 1 set age 45 + random 5 set color brown
             let r random-float 1
             if (0    < r and r <= 0.03)[set edu 1]
             if (0.03 < r and r <= 0.11)[set edu 2]
-            if (0.11 < r and r <= 0.54)[set edu 3]
-            if (0.54 < r and r <= 0.65)[set edu 4]
-            if (0.65 < r and r <= 0.92)[set edu 5]
+            if (0.11 < r and r <= 0.52)[set edu 3]
+            if (0.52 < r and r <= 0.62)[set edu 4]
+            if (0.62 < r and r <= 0.92)[set edu 5]
             if (0.92 < r and r <= 0.98)[set edu 6]
             if (0.98 < r )[set edu 7]]
 if ID = 9  [set size 1 set age 50 + random 5 set color brown
             let r random-float 1
-            if (0    < r and r <= 0.01)[set edu 0]
-            if (0.01 < r and r <= 0.07)[set edu 1]
-            if (0.07 < r and r <= 0.22)[set edu 2]
-            if (0.22 < r and r <= 0.67)[set edu 3]
-            if (0.67 < r and r <= 0.75)[set edu 4]
-            if (0.75 < r and r <= 0.94)[set edu 5]
-            if (0.94 < r and r <= 0.98)[set edu 6]
+            if (0.00 < r and r <= 0.07)[set edu 1]
+            if (0.07 < r and r <= 0.20)[set edu 2]
+            if (0.20 < r and r <= 0.64)[set edu 3]
+            if (0.64 < r and r <= 0.72)[set edu 4]
+            if (0.72 < r and r <= 0.93)[set edu 5]
+            if (0.93 < r and r <= 0.98)[set edu 6]
             if (0.98 < r )[set edu 7]]
 if ID = 10 [set size 1 set age 55 + random 5 set color brown
             let r random-float 1
             if (0    < r and r <= 0.01)[set edu 0]
-            if (0.01 < r and r <= 0.15)[set edu 1]
-            if (0.15 < r and r <= 0.35)[set edu 2]
-            if (0.35 < r and r <= 0.76)[set edu 3]
-            if (0.76 < r and r <= 0.81)[set edu 4]
-            if (0.81 < r and r <= 0.96)[set edu 5]
-            if (0.96 < r and r <= 0.99)[set edu 6]
+            if (0.01 < r and r <= 0.14)[set edu 1]
+            if (0.14 < r and r <= 0.33)[set edu 2]
+            if (0.33 < r and r <= 0.73)[set edu 3]
+            if (0.73 < r and r <= 0.79)[set edu 4]
+            if (0.79 < r and r <= 0.95)[set edu 5]
+            if (0.95 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 11 [set size 1 set age 60 + random 5 set color violet
             let r random-float 1
-            if (0    < r and r <= 0.02)[set edu 0]
-            if (0.02 < r and r <= 0.24)[set edu 1]
-            if (0.24 < r and r <= 0.46)[set edu 2]
-            if (0.46 < r and r <= 0.81)[set edu 3]
-            if (0.81 < r and r <= 0.85)[set edu 4]
+            if (0    < r and r <= 0.03)[set edu 0]
+            if (0.02 < r and r <= 0.23)[set edu 1]
+            if (0.21 < r and r <= 0.45)[set edu 2]
+            if (0.42 < r and r <= 0.81)[set edu 3]
+            if (0.81 < r and r <= 0.84)[set edu 4]
             if (0.85 < r and r <= 0.97)[set edu 5]
             if (0.97 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 12 [set size 1 set age 65 + random 5 set color violet
             let r random-float 1
             if (0    < r and r <= 0.06)[set edu 0]
-            if (0.06 < r and r <= 0.34)[set edu 1]
-            if (0.34 < r and r <= 0.56)[set edu 2]
-            if (0.56 < r and r <= 0.83)[set edu 3]
-            if (0.83 < r and r <= 0.86)[set edu 4]
-            if (0.86 < r and r <= 0.97)[set edu 5]
-            if (0.97 < r and r <= 0.99)[set edu 6]
+            if (0.06 < r and r <= 0.33)[set edu 1]
+            if (0.33 < r and r <= 0.53)[set edu 2]
+            if (0.53 < r and r <= 0.82)[set edu 3]
+            if (0.82 < r and r <= 0.85)[set edu 4]
+            if (0.85 < r and r <= 0.98)[set edu 5]
+            if (0.98 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 13 [set size 1 set age 70 + random 5 set color violet
             let r random-float 1
-            if (0    < r and r <= 0.11)[set edu 0]
-            if (0.11 < r and r <= 0.43)[set edu 1]
-            if (0.43 < r and r <= 0.61)[set edu 2]
-            if (0.61 < r and r <= 0.83)[set edu 3]
-            if (0.83 < r and r <= 0.86)[set edu 4]
-            if (0.86 < r and r <= 0.98)[set edu 5]
-            if (0.98 < r and r <= 0.99)[set edu 6]
+            if (0    < r and r <= 0.09)[set edu 0]
+            if (0.09 < r and r <= 0.41)[set edu 1]
+            if (0.41 < r and r <= 0.58)[set edu 2]
+            if (0.58 < r and r <= 0.81)[set edu 3]
+            if (0.81 < r and r <= 0.85)[set edu 4]
+            if (0.85 < r and r <= 0.97)[set edu 5]
+            if (0.97 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 14 [set size 1 set age 75 + random 5 set color violet
             let r random-float 1
-            if (0    < r and r <= 0.16)[set edu 0]
-            if (0.16 < r and r <= 0.51)[set edu 1]
-            if (0.51 < r and r <= 0.65)[set edu 2]
-            if (0.65 < r and r <= 0.84)[set edu 3]
-            if (0.84 < r and r <= 0.87)[set edu 4]
-            if (0.87 < r and r <= 0.98)[set edu 5]
+            if (0    < r and r <= 0.15)[set edu 0]
+            if (0.15 < r and r <= 0.48)[set edu 1]
+            if (0.48 < r and r <= 0.64)[set edu 2]
+            if (0.64 < r and r <= 0.82)[set edu 3]
+            if (0.82 < r and r <= 0.86)[set edu 4]
+            if (0.86 < r and r <= 0.98)[set edu 5]
             if (0.98 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 15 [set size 1 set age 80 + random 5 set color pink
             let r random-float 1
-            if (0    < r and r <= 0.26)[set edu 0]
-            if (0.26 < r and r <= 0.64)[set edu 1]
-            if (0.64 < r and r <= 0.74)[set edu 2]
+            if (0    < r and r <= 0.25)[set edu 0]
+            if (0.25 < r and r <= 0.62)[set edu 1]
+            if (0.62 < r and r <= 0.74)[set edu 2]
             if (0.74 < r and r <= 0.87)[set edu 3]
-            if (0.87 < r and r <= 0.90)[set edu 4]
-            if (0.90 < r and r <= 0.98)[set edu 5]
+            if (0.87 < r and r <= 0.89)[set edu 4]
+            if (0.89 < r and r <= 0.98)[set edu 5]
             if (0.98 < r and r <= 0.99)[set edu 6]
             if (0.99 < r )[set edu 7]]
 if ID = 16 [set size 1 set age 85 + random 15 set color pink
             let r random-float 1
             if (0    < r and r <= 0.42)[set edu 0]
-            if (0.26 < r and r <= 0.73)[set edu 1]
-            if (0.60 < r and r <= 0.82)[set edu 2]
-            if (0.70 < r and r <= 0.91)[set edu 3]
-            if (0.83 < r and r <= 0.93)[set edu 4]
-            if (0.87 < r and r <= 0.99)[set edu 5]
-            if (0.99 < r )[set edu 6 + random 2]]
+            if (0.42 < r and r <= 0.75)[set edu 1]
+            if (0.75 < r and r <= 0.83)[set edu 2]
+            if (0.83 < r and r <= 0.92)[set edu 3]
+            if (0.92 < r and r <= 0.94)[set edu 4]
+            if (0.94 < r and r <= 0.99)[set edu 5]
+            if (0.99 < r )[set edu 6]]
 
 end
 
 
 ;;;;;;;;;;;;;;;;;;;;;
 to set-destination   ;; Decomposing matrix
-  let gncsv csv:from-file "ODmatrix/St111191_Seodaemoon.csv"
+  let gncsv csv:from-file "ODmatrix/St111201_Mapo.csv"
   let rawheader item 0 gncsv
   let destinationNames remove-item 0 rawheader
   let gnMat remove-item 0 gncsv
@@ -407,6 +405,8 @@ to set-destination   ;; Decomposing matrix
   ]
   type totalused type " " type Num type " " print originName ;; print inbound agents out of the total population (age 15-64)
   ]
+
+
 
 
 
@@ -493,12 +493,12 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to non-road-effect
   if(ts__kal >= PM10-parameters)
-     [set health health - random-float 0.004 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.008 * (310 - health)] ;arbitrarily
 end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to road-effect
   if(ts__kal * 1.426 >= PM10-parameters)
-     [set health health - random-float 0.005 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.010 * (310 - health)] ;arbitrarily
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -530,11 +530,11 @@ to set-BAU
   let workID item (3 + random 11) table:get ts_kalman ticks + 1
 
    if (ticks + 1) mod 2 = 0 [
-    ifelse homeID > 0 
+    ifelse homeID > 0
     [set ts__kal  homeID][set ts__kal max table:get ts_kalman ticks + 1]
   ]
    if ticks mod 2 = 0 [
-    ifelse workID > 0 
+    ifelse workID > 0
     [set ts__kal  workID][set ts__kal max table:get ts_kalman ticks + 1]
   ]
 
@@ -619,36 +619,28 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to dong-plot
   set-current-plot "Subdistrict level"
-  set-current-plot-pen "sinsa_risk"     plot((count people with [color = red and districtName = "sinsa" and destinationName != "others"])   / (count people with [districtName = "sinsa" and destinationName != "others"])    * 100)
-	set-current-plot-pen "nonhyun1_risk"  plot((count people with [color = red and districtName = "nonhyun1" and destinationName != "others"])/ (count people with [districtName = "nonhyun1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "nonhyun2_risk"  plot((count people with [color = red and districtName = "nonhyun2" and destinationName != "others"])/ (count people with [districtName = "nonhyun2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "samsung1_risk"  plot((count people with [color = red and districtName = "samsung1" and destinationName != "others"])/ (count people with [districtName = "samsung1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "samsung2_risk"  plot((count people with [color = red and districtName = "samsung2" and destinationName != "others"])/ (count people with [districtName = "samsung2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "daechi1_risk"   plot((count people with [color = red and districtName = "daechi1" and destinationName != "others"]) / (count people with [districtName = "daechi1" and destinationName != "others"])  * 100)
-	set-current-plot-pen "daechi4_risk"   plot((count people with [color = red and districtName = "daechi4" and destinationName != "others"]) / (count people with [districtName = "daechi4" and destinationName != "others"])  * 100)
-	set-current-plot-pen "yeoksam1_risk"  plot((count people with [color = red and districtName = "yeoksam1" and destinationName != "others"])/ (count people with [districtName = "yeoksam1" and destinationName != "others"]) * 100)
-	set-current-plot-pen "yeoksam2_risk"  plot((count people with [color = red and districtName = "yeoksam2" and destinationName != "others"])/ (count people with [districtName = "yeoksam2" and destinationName != "others"]) * 100)
-	set-current-plot-pen "dogok1_risk"    plot((count people with [color = red and districtName = "dogok1" and destinationName != "others"])  / (count people with [districtName = "dogok1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "dogok2_risk"    plot((count people with [color = red and districtName = "dogok2" and destinationName != "others"])  / (count people with [districtName = "dogok2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "gaepo1_risk"    plot((count people with [color = red and districtName = "gaepo1" and destinationName != "others"])  / (count people with [districtName = "gaepo1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "gaepo4_risk"    plot((count people with [color = red and districtName = "gaepo4" and destinationName != "others"])  / (count people with [districtName = "gaepo4" and destinationName != "others"])   * 100)
-	set-current-plot-pen "ilwon_risk"     plot((count people with [color = red and districtName = "ilwon" and destinationName != "others"])   / (count people with [districtName = "ilwon" and destinationName != "others"])    * 100)
-	set-current-plot-pen "ilwon1_risk"    plot((count people with [color = red and districtName = "ilwon1" and destinationName != "others"])  / (count people with [districtName = "ilwon1" and destinationName != "others"])   * 100)
-	set-current-plot-pen "ilwon2_risk"    plot((count people with [color = red and districtName = "ilwon2" and destinationName != "others"])  / (count people with [districtName = "ilwon2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "suseo_risk"     plot((count people with [color = red and districtName = "suseo" and destinationName != "others"])   / (count people with [districtName = "suseo" and destinationName != "others"])    * 100)
-	set-current-plot-pen "ap_risk"        plot((count people with [color = red and districtName = "ap" and destinationName != "others"])      / (count people with [districtName = "ap" and destinationName != "others"])       * 100)
-	set-current-plot-pen "chungdam_risk"  plot((count people with [color = red and districtName = "chungdam" and destinationName != "others"])/ (count people with [districtName = "chungdam" and destinationName != "others"]) * 100)
-	set-current-plot-pen "daechi2_risk"   plot((count people with [color = red and districtName = "daechi2" and destinationName != "others"]) / (count people with [districtName = "daechi2" and destinationName != "others"])  * 100)
-	set-current-plot-pen "gaepo2_risk"    plot((count people with [color = red and districtName = "gaepo2" and destinationName != "others"])  / (count people with [districtName = "gaepo2" and destinationName != "others"])   * 100)
-	set-current-plot-pen "segok_risk"     plot((count people with [color = red and districtName = "segok" and destinationName != "others"])   / (count people with [districtName = "segok" and destinationName != "others"])    * 100)
+  set-current-plot-pen "Ahyun_risk"     plot((count people with [color = red and districtName = "Ahyun" and destinationName != "others"])   / (count people with [districtName = "Ahyun" and destinationName != "others"])    * 100)
+	set-current-plot-pen "Daeheung_risk"  plot((count people with [color = red and districtName = "Daeheung" and destinationName != "others"])/ (count people with [districtName = "Daeheung" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Dohwa_risk"  plot((count people with [color = red and districtName = "Dohwa" and destinationName != "others"])/ (count people with [districtName = "Dohwa" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Gongdeok_risk"  plot((count people with [color = red and districtName = "Gongdeok" and destinationName != "others"])/ (count people with [districtName = "Gongdeok" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Hapjeong_risk"  plot((count people with [color = red and districtName = "Hapjeong" and destinationName != "others"])/ (count people with [districtName = "Hapjeong" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Mangwon1_risk"   plot((count people with [color = red and districtName = "Mangwon1" and destinationName != "others"]) / (count people with [districtName = "Mangwon1" and destinationName != "others"])  * 100)
+	set-current-plot-pen "Mangwon2_risk"   plot((count people with [color = red and districtName = "Mangwon2" and destinationName != "others"]) / (count people with [districtName = "Mangwon2" and destinationName != "others"])  * 100)
+	set-current-plot-pen "Sangam_risk"  plot((count people with [color = red and districtName = "Sangam" and destinationName != "others"])/ (count people with [districtName = "Sangam" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Seogang_risk"  plot((count people with [color = red and districtName = "Seogang" and destinationName != "others"])/ (count people with [districtName = "Seogang" and destinationName != "others"]) * 100)
+	set-current-plot-pen "Seogyo_risk"    plot((count people with [color = red and districtName = "Seogyo" and destinationName != "others"])  / (count people with [districtName = "Seogyo" and destinationName != "others"])   * 100)
+	set-current-plot-pen "Seongsan1_risk"    plot((count people with [color = red and districtName = "Seongsan1" and destinationName != "others"])  / (count people with [districtName = "Seongsan1" and destinationName != "others"])   * 100)
+	set-current-plot-pen "Seongsan2_risk"    plot((count people with [color = red and districtName = "Seongsan2" and destinationName != "others"])  / (count people with [districtName = "Seongsan2" and destinationName != "others"])   * 100)
+	set-current-plot-pen "Sinsoo_risk"    plot((count people with [color = red and districtName = "Sinsoo" and destinationName != "others"])  / (count people with [districtName = "Sinsoo" and destinationName != "others"])   * 100)
+	set-current-plot-pen "Yeomni_risk"     plot((count people with [color = red and districtName = "Yeomni" and destinationName != "others"])   / (count people with [districtName = "Yeomni" and destinationName != "others"])    * 100)
+	set-current-plot-pen "Yeonnam_risk"    plot((count people with [color = red and districtName = "Yeonnam" and destinationName != "others"])  / (count people with [districtName = "Yeonnam" and destinationName != "others"])   * 100)
+	set-current-plot-pen "Yonggang_risk"    plot((count people with [color = red and districtName = "Yonggang" and destinationName != "others"])  / (count people with [districtName = "Yonggang" and destinationName != "others"])   * 100)
 end
 
 to age-plot
   set-current-plot "By Age Group"
-  set-current-plot-pen "Young"  ;ifelse(count people with [(age < 15)] != 0)[
-    plot(count people with [age < 15 and color = red and destinationName != "others"]) /
-        (count people with [age < 15 and destinationName != "others"]) * 100
-  set-current-plot-pen "Middle" plot((count people with [age = "active" and color = red and destinationName != "others"]) / (count people with [age = "active" and destinationName != "others"]) * 100)
+  set-current-plot-pen "Young"  plot(count people with [age < 15 and color = red and destinationName != "others"]) / (count people with [age < 15 and destinationName != "others"]) * 100
+  set-current-plot-pen "Middle" plot((count people with [age >= 15 and age < 65 and color = red and destinationName != "others"]) / (count people with [age >= 15 and age < 65 and destinationName != "others"]) * 100)
   set-current-plot-pen "Old"    plot((count people with [age >= 65 and color = red and destinationName != "others"]) / (count people with [age >= 65 and destinationName != "others"]) * 100)
 
 end
@@ -662,17 +654,14 @@ end
 
 to pm10-plot
   set-current-plot "PM10 patches"
-  set-current-plot-pen "pm10-sinsa-road-kal"  plot [ts__kal] of patch 24 253
-  ;set-current-plot-pen "pm10-yeoksam1"   plot [ts__kal] of patch 60 160
-  ;set-current-plot-pen "pm10-daechi1"    plot [ts__kal] of patch 140 140
-  ;set-current-plot-pen "pm10-segok"      plot [ts__kal] of patch 260 60
+  set-current-plot-pen "pm10-Sogang"  plot [ts__kal] of patch 208 54
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 527
 55
-785
-310
+927
+349
 -1
 -1
 1.25
@@ -686,9 +675,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-199
+313
 0
-196
+227
 1
 1
 1
@@ -755,28 +744,22 @@ true
 false
 "" ""
 PENS
-"sinsa_risk" 1.0 0 -7500403 true "" ""
-"nonhyun1_risk" 1.0 0 -2674135 true "" ""
-"nonhyun2_risk" 1.0 0 -955883 true "" ""
-"samsung1_risk" 1.0 0 -6459832 true "" ""
-"samsung2_risk" 1.0 0 -1184463 true "" ""
-"daechi1_risk" 1.0 0 -10899396 true "" ""
-"daechi4_risk" 1.0 0 -13840069 true "" ""
-"yeoksam1_risk" 1.0 0 -14835848 true "" ""
-"yeoksam2_risk" 1.0 0 -11221820 true "" ""
-"dogok1_risk" 1.0 0 -13791810 true "" ""
-"dogok2_risk" 1.0 0 -13345367 true "" ""
-"gaepo1_risk" 1.0 0 -8630108 true "" ""
-"gaepo4_risk" 1.0 0 -5825686 true "" ""
-"ilwon_risk" 1.0 0 -2064490 true "" ""
-"ilwon1_risk" 1.0 0 -14454117 true "" ""
-"ilwon2_risk" 1.0 0 -1069655 true "" ""
-"suseo_risk" 1.0 0 -8330359 true "" ""
-"ap_risk" 1.0 0 -10603201 true "" ""
-"chungdam_risk" 1.0 0 -2695187 true "" ""
-"daechi2_risk" 1.0 0 -5987164 true "" ""
-"gaepo2_risk" 1.0 0 -15390905 true "" ""
-"segok_risk" 1.0 0 -16777216 true "" ""
+"Ahyun_risk" 1.0 0 -7500403 true "" ""
+"Daeheung_risk" 1.0 0 -2674135 true "" ""
+"Dohwa_risk" 1.0 0 -955883 true "" ""
+"Gongdeok_risk" 1.0 0 -6459832 true "" ""
+"Hapjeong_risk" 1.0 0 -1184463 true "" ""
+"Mangwon1_risk" 1.0 0 -10899396 true "" ""
+"Mangwon2_risk" 1.0 0 -13840069 true "" ""
+"Sangam_risk" 1.0 0 -14835848 true "" ""
+"Seogang_risk" 1.0 0 -11221820 true "" ""
+"Seogyo_risk" 1.0 0 -13791810 true "" ""
+"Seongsan1_risk" 1.0 0 -13345367 true "" ""
+"Seongsan2_risk" 1.0 0 -8630108 true "" ""
+"Sinsoo_risk" 1.0 0 -5825686 true "" ""
+"Yeomni_risk" 1.0 0 -2064490 true "" ""
+"Yeonnam_risk" 1.0 0 -14454117 true "" ""
+"Yonggang_risk" 1.0 0 -1069655 true "" ""
 
 PLOT
 10
@@ -837,11 +820,11 @@ PENS
 "Low" 1.0 0 -4699768 true "" ""
 
 TEXTBOX
-597
-32
-794
-51
-Seodaemoon
+722
+31
+777
+50
+Mapo
 18
 0.0
 1
@@ -915,14 +898,7 @@ true
 false
 "" ""
 PENS
-"pm10-sinsa-road" 1.0 0 -7500403 true "" ""
-
-
-
-
-
-
-
+"pm10-Seogang" 1.0 0 -7500403 true "" ""
 
 CHOOSER
 240
@@ -1339,7 +1315,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

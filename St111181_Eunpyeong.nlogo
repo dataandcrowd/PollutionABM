@@ -32,14 +32,13 @@ to go
   ask people [
     adaptive-cap
     sensitivity
-    ;road-effect
     ]
 
-  ;gu-plot
-  ;dong-plot
-  ;age-plot
-  ;edu-plot
-  ;pm10-plot
+  gu-plot
+  dong-plot
+  age-plot
+  edu-plot
+  pm10-plot
   update-plots
   tick
   if (ticks = 8764) [stop]
@@ -487,12 +486,12 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to non-road-effect
   if(ts__kal >= PM10-parameters)
-     [set health health - random-float 0.004 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.008 * (310 - health)] ;arbitrarily
 end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to road-effect
   if(ts__kal * 1.426 >= PM10-parameters)
-     [set health health - random-float 0.005 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.010 * (310 - health)] ;arbitrarily
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;

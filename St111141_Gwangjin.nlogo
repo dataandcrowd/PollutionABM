@@ -489,12 +489,12 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to non-road-effect
   if(ts__kal >= PM10-parameters)
-     [set health health - random-float 0.004 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.008 * (310 - health)] ;arbitrarily
 end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 to road-effect
   if(ts__kal * 1.426 >= PM10-parameters)
-     [set health health - random-float 0.005 * (310 - health)] ;arbitrarily
+     [set health health - random-float 0.010 * (310 - health)] ;arbitrarily
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1310,7 +1310,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
