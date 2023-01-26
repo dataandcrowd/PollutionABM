@@ -317,14 +317,3 @@ df$AC[df$AC == 200] <- "AC200"
 rm(list=setdiff(ls(), "df"))
 
 write_csv(df, "df.csv")
-
-#save.image("df.RData")
-
-
-
-
-
-
-
-
-
